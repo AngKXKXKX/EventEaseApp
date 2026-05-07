@@ -1,0 +1,21 @@
+@if (Event != null)
+{
+    <div class="card mb-3" @onclick="OnClick" style="cursor: pointer;">
+        <div class="card-body position-relative">
+            <h5 class="card-title">@Event.Name</h5>
+            <p class="card-text">
+                <strong>Date:</strong> @Event.Date.ToString("yyyy-MM-dd")<br>
+                <strong>Location:</strong> @Event.Location
+            </p>
+            <a class="stretched-link" href="@($"/event-details/{Event.Id}")"></a>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Event? Event { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+}

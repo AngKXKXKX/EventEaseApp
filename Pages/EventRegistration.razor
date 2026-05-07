@@ -1,0 +1,98 @@
+﻿@page "/event-registration/{id:int}"
+@inject NavigationManager Navigation
+@inject EventEaseApp.Services.EventDataService EventData
+@inject EventEaseApp.Services.SessionState SessionState
+@inject EventEaseApp.Services.EventAttendanceService AttendanceService
+@using Microsoft.AspNetCore.Components.Forms
+
+<h1>Register for Event</h1>
+
+@if (eventItem != null)
+{
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Event Information</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>Event Name:</strong> @eventItem.Name</p>
+            <p><strong>Date:</strong> @eventItem.Date.ToString("yyyy-MM-dd")</p>
+            <p><strong>Location:</strong> @eventItem.Location</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">Registration Details</h5>
+        </div>
+        <div class="card-body">
+            <EditForm Model="registrationModel" OnValidSubmit="SubmitRegistration">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="alert alert-danger" />
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Full Name:</label>
+                    <InputText id="name" @bind-value="registrationModel.Name" class="form-control" placeholder="Enter your full name" />
+                    <ValidationMessage For="() => registrationModel.Name" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address:</label>
+                    <InputText id="email" @bind-value="registrationModel.Email" class="form-control" type="email" placeholder="Enter your email address" />
+                    <ValidationMessage For="() => registrationModel.Email" class="text-danger" />
+                </div>
+
+                <div class="d-grid gap-2 d-sm-flex">
+                    <button type="submit" class="btn btn-success">Complete Registration</button>
+                    <button type="button" @onclick="BackToDetails" class="btn btn-secondary">Cancel</button>
+                </div>
+            </EditForm>
+
+            @if (!string.IsNullOrEmpty(submitMessage))
+            {
+                <div class="alert alert-success mt-3" role="alert">
+                    <strong>Success!</strong> @submitMessage
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <p class="text-danger">Event not found.</p>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Event? eventItem;
+    private RegistrationModel registrationModel = new();
+    private string? submitMessage;
+
+    protected override void OnParametersSet()
+    {
+        eventItem = EventData.GetEvent(Id);
+    }
+
+    private void SubmitRegistration()
+    {
+        Console.WriteLine("Submit button clicked!");
+        if (eventItem == null)
+        {
+            submitMessage = "Cannot register for a non-existent event.";
+            return;
+        }
+
+        SessionState.SignIn(registrationModel.Name ?? string.Empty, registrationModel.Email ?? string.Empty);
+        SessionState.RegisterEvent(eventItem.Id);
+        AttendanceService.AddRegistration(eventItem.Id, registrationModel.Name ?? string.Empty, registrationModel.Email ?? string.Empty);
+
+        Navigation.NavigateTo($"/event-details/{eventItem.Id}");
+    }
+
+    private void BackToDetails()
+    {
+        Console.WriteLine("Back to details button clicked!");
+        Navigation.NavigateTo($"/event-details/{Id}");
+    }
+}

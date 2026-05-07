@@ -1,0 +1,77 @@
+@page "/profile"
+@inject EventEaseApp.Services.SessionState SessionState
+@inject EventEaseApp.Services.EventDataService EventData
+
+<h1>User Profile</h1>
+
+@if (SessionState.IsLoggedIn)
+{
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Session Information</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>User Name:</strong> @SessionState.UserName</p>
+            <p><strong>Email:</strong> @SessionState.Email</p>
+            <p><strong>Status:</strong> <span class="badge bg-success">Logged In</span></p>
+        </div>
+    </div>
+
+    @if (registeredEvents.Count > 0)
+    {
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Registered Events (@registeredEvents.Count)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @foreach (var eventItem in registeredEvents)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">@eventItem.Name</h6>
+                                    <p class="card-text">
+                                        <small><strong>Date:</strong> @eventItem.Date.ToString("yyyy-MM-dd")</small><br />
+                                        <small><strong>Location:</strong> @eventItem.Location</small>
+                                    </p>
+                                    <a href="/event-details/@eventItem.Id" class="btn btn-sm btn-primary">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <p>You haven't registered for any events yet. <a href="/events">Browse events</a></p>
+        </div>
+    }
+}
+else
+{
+    <div class="alert alert-warning">
+        <p>You are not logged in. <a href="/events">Browse events and register</a> to create your session.</p>
+    </div>
+}
+
+@code {
+    private List<Event> registeredEvents = new();
+
+    protected override void OnInitialized()
+    {
+        if (SessionState.IsLoggedIn)
+        {
+            // Get all events
+            var allEvents = EventData.GetEvents();
+
+            // Filter to only show registered events
+            registeredEvents = allEvents
+                .Where(e => SessionState.RegisteredEventIds.Contains(e.Id))
+                .ToList();
+        }
+    }
+}

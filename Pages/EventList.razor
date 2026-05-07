@@ -1,0 +1,38 @@
+@page "/events"
+@inject NavigationManager Navigation
+@using EventEaseApp.Components
+
+<h1>Event List</h1>
+
+@foreach (var item in events)
+{
+    <EventCard Event="item" />
+}
+
+@code {
+    private List<Event> events = new List<Event>();
+
+    protected override void OnInitialized()
+    {
+        // Generate mock data for performance testing
+        var summaries = new[] { "Meeting", "Workshop", "Seminar", "Conference", "Party", "Training", "Webinar", "Expo" };
+        var locations = new[] { "Conference Room A", "Outdoor Park", "Main Auditorium", "Hall B", "Online", "Downtown Venue" };
+
+        for (int i = 1; i <= 100; i++)
+        {
+            events.Add(new Event
+            {
+                Id = i,
+                Name = $"{summaries[i % summaries.Length]} {i}",
+                Date = DateTime.Now.AddDays(i),
+                Location = locations[i % locations.Length]
+            });
+        }
+    }
+
+    private void ViewDetails(int id)
+    {
+        Console.WriteLine($"Viewing details for event {id}");   
+        Navigation.NavigateTo($"/event-details/{id}");
+    }
+}

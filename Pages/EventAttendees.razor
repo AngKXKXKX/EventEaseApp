@@ -1,0 +1,79 @@
+@page "/event-attendees/{id:int}"
+@inject EventEaseApp.Services.EventDataService EventData
+@inject EventEaseApp.Services.EventAttendanceService AttendanceService
+
+<h1>Event Attendees</h1>
+
+@if (eventItem != null)
+{
+    <div class="mb-4">
+        <h2>@eventItem.Name</h2>
+        <p><strong>Date:</strong> @eventItem.Date.ToString("yyyy-MM-dd")</p>
+        <p><strong>Location:</strong> @eventItem.Location</p>
+    </div>
+
+    @if (attendees.Count > 0)
+    {
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Registered Attendees (@attendees.Count)</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Registered At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var attendee in attendees)
+                        {
+                            <tr>
+                                <td>@attendee.Name</td>
+                                <td>@attendee.Email</td>
+                                <td>@attendee.RegisteredAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <p>No attendees registered for this event yet.</p>
+        </div>
+    }
+
+    <div class="mt-3">
+        <a href="/event-details/@Id" class="btn btn-secondary">Back to Event Details</a>
+    </div>
+}
+else
+{
+    <p class="text-danger">Event not found.</p>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Event? eventItem;
+    private List<(string Name, string Email, DateTime RegisteredAt)> attendees = new();
+
+    protected override void OnInitialized()
+    {
+        // Get event details
+        eventItem = EventData.GetEvent(Id);
+
+        // Get attendees for this event
+        if (eventItem != null)
+        {
+            var attendeeList = AttendanceService.GetAttendees(Id);
+            attendees = new List<(string Name, string Email, DateTime RegisteredAt)>(attendeeList);
+        }
+    }
+}

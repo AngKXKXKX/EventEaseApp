@@ -1,0 +1,57 @@
+@page "/event-details/{id:int}"
+
+@inject NavigationManager Navigation
+@inject EventEaseApp.Services.EventDataService EventData
+@inject EventEaseApp.Services.SessionState SessionState
+
+<h1>Event Details</h1>
+
+@if (eventItem != null)
+{
+    <h2>@eventItem.Name</h2>
+    <p>Date: @eventItem.Date.ToString("yyyy-MM-dd")</p>
+    <p>Location: @eventItem.Location</p>
+
+    @if (SessionState.RegisteredEventIds.Contains(eventItem.Id))
+    {
+        <span class="badge bg-success mb-3">Already registered</span>
+    }
+
+    <div class="mt-3">
+        <a href="/event-registration/@Id" class="btn btn-primary me-2">Register for Event</a>
+        <a href="/event-attendees/@Id" class="btn btn-info me-2">View Attendees</a>
+        <a href="/events" class="btn btn-secondary">Back to Events</a>
+    </div>
+}
+else
+{
+    <p class="text-danger">Event not found.</p>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Event? eventItem;
+
+    protected override void OnParametersSet()
+    {
+        // Generate mock data matching EventList
+        var summaries = new[] { "Meeting", "Workshop", "Seminar", "Conference", "Party", "Training", "Webinar", "Expo" };
+        var locations = new[] { "Conference Room A", "Outdoor Park", "Main Auditorium", "Hall B", "Online", "Downtown Venue" };
+
+        var mockEvents = new List<Event>();
+        for (int i = 1; i <= 100; i++)
+        {
+            mockEvents.Add(new Event
+            {
+                Id = i,
+                Name = $"{summaries[i % summaries.Length]} {i}",
+                Date = DateTime.Now.AddDays(i),
+                Location = locations[i % locations.Length]
+            });
+        }
+
+        eventItem = mockEvents.FirstOrDefault(e => e.Id == Id);
+    }
+}
